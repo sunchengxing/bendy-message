@@ -31,12 +31,22 @@ fn get_session_cookie(headers: &Headers) -> Option<String> {
     })
 }
 
+async fn get_blocked_admins(kv: &KvStore) -> Vec<String> {
+    kv.get("bmsg:config:admins_blocked").text().await
+        .ok().flatten()
+        .and_then(|s| serde_json::from_str(&s).ok())
+        .unwrap_or_default()
+}
+
 async fn get_all_admins(kv: &KvStore) -> Vec<String> {
-    let mut admins: Vec<String> = BUILTIN_ADMINS.iter().map(|s| s.to_string()).collect();
+    let blocked = get_blocked_admins(kv).await;
+    let mut admins: Vec<String> = BUILTIN_ADMINS.iter()
+        .filter(|u| !blocked.contains(&u.to_string()))
+        .map(|s| s.to_string()).collect();
     if let Some(extra) = kv.get("bmsg:config:admins").text().await.ok().flatten() {
         if let Ok(dynamic) = serde_json::from_str::<Vec<String>>(&extra) {
             for u in dynamic {
-                if !admins.contains(&u) {
+                if !admins.contains(&u) && !blocked.contains(&u) {
                     admins.push(u);
                 }
             }
@@ -199,14 +209,25 @@ pub async fn add_admin(mut req: Request, env: &Env) -> Result<Response> {
 pub async fn remove_admin(mut req: Request, env: &Env) -> Result<Response> {
     let body: serde_json::Value = req.json().await?;
     let username = body["username"].as_str().unwrap_or("").to_string();
-    if BUILTIN_ADMINS.contains(&username.as_str()) {
-        return Response::from_json(&serde_json::json!({"code": 1003, "message": "cannot remove builtin admin"}));
+    if username.is_empty() {
+        return Response::from_json(&serde_json::json!({"code": 1003, "message": "username required"}));
     }
     let kv = env.kv("bmsg-cache")?;
-    let mut dynamic = get_dynamic_admins(&kv).await;
-    dynamic.retain(|u| u != &username);
-    let json = serde_json::to_string(&dynamic).map_err(|e| Error::RustError(e.to_string()))?;
-    kv.put("bmsg:config:admins", &json)?.execute().await?;
+    if BUILTIN_ADMINS.contains(&username.as_str()) {
+        // Block builtin admin by adding to blocked list
+        let mut blocked = get_blocked_admins(&kv).await;
+        if !blocked.contains(&username) {
+            blocked.push(username.clone());
+        }
+        let json = serde_json::to_string(&blocked).map_err(|e| Error::RustError(e.to_string()))?;
+        kv.put("bmsg:config:admins_blocked", &json)?.execute().await?;
+    } else {
+        // Remove dynamic admin
+        let mut dynamic = get_dynamic_admins(&kv).await;
+        dynamic.retain(|u| u != &username);
+        let json = serde_json::to_string(&dynamic).map_err(|e| Error::RustError(e.to_string()))?;
+        kv.put("bmsg:config:admins", &json)?.execute().await?;
+    }
     Response::from_json(&serde_json::json!({"code": 0, "message": "ok"}))
 }
 

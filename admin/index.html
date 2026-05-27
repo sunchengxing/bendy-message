@@ -269,8 +269,7 @@ pre{white-space:pre-wrap;word-break:break-all}
             <td>{{ a.username }}</td>
             <td><span class="badge">{{ a.source }}</span></td>
             <td>
-              <button v-if="a.source==='dynamic'" class="btn btn-sm btn-danger" @click="removeAdmin(a.username)">删除</button>
-              <span v-else style="color:var(--text2);font-size:12px">内置管理员</span>
+              <button class="btn btn-sm btn-danger" @click="removeAdmin(a.username)">删除</button>
             </td>
           </tr>
         </table>
