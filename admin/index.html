@@ -113,6 +113,12 @@ th{color:var(--text2);font-weight:500;font-size:12px;text-transform:uppercase;le
 .radio-group{display:flex;gap:8px}
 .radio-btn{padding:6px 16px;border:1px solid var(--border);border-radius:6px;font-size:13px;cursor:pointer;background:var(--bg);color:var(--text)}
 .radio-btn.active{border-color:var(--blue);color:var(--blue);background:rgba(59,130,246,.06)}
+.help-section{margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid var(--border)}
+.help-section h4{font-size:14px;margin-bottom:8px;font-weight:600}
+.help-section p{color:var(--text2);margin-bottom:8px}
+.help-section ul{padding-left:20px;margin:0}
+.help-section li{margin-bottom:4px}
+.help-section code{font-family:monospace;font-size:12px;background:var(--surface);padding:1px 4px;border-radius:3px}
 </style>
 </head>
 <body class="layout-left">
@@ -246,6 +252,7 @@ th{color:var(--text2);font-weight:500;font-size:12px;text-transform:uppercase;le
       <div class="tab-bar">
         <div class="tab-item" :class="{active:settingsTab==='admins'}" @click="settingsTab='admins';loadAdmins()">管理员管理</div>
         <div class="tab-item" :class="{active:settingsTab==='config'}" @click="settingsTab='config'">系统配置</div>
+        <div class="tab-item" :class="{active:settingsTab==='help'}" @click="settingsTab='help'">系统帮助</div>
       </div>
 
       <!-- 管理员管理 -->
@@ -279,6 +286,66 @@ th{color:var(--text2);font-weight:500;font-size:12px;text-transform:uppercase;le
               <div class="radio-btn" :class="{active:sidebarPosition==='top'}" @click="setSidebarPosition('top')">顶部</div>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- 系统帮助 -->
+      <div v-show="settingsTab==='help'" style="font-size:13px;line-height:1.8;color:var(--text)">
+        <div class="help-section">
+          <h4>💬 消息管理</h4>
+          <p>管理所有已发送的消息，支持发送新消息、查看和删除历史消息。</p>
+          <ul>
+            <li><b>发送消息：</b>点击「发送消息」按钮打开弹窗，依次选择平台（Web/PC-Windows/PC-macOS/PC-Linux/Android/iOS）、填写应用包名（如 com.example.app）、可选填用户ID（留空则对该应用下所有注册用户广播）、选择消息类型（通知/消息/命令）、填写JSON格式内容、选择是否持久化存储。</li>
+            <li><b>用户ID说明：</b>非必填。填写则定向推送给指定用户；留空则推送给该应用下所有已注册的用户。</li>
+            <li><b>消息类型：</b>通知（notification）= 系统通知推送；消息（message）= 即时消息；命令（shell）= 远程命令执行。</li>
+            <li><b>删除消息：</b>每行操作列的「删除」按钮可删除单条消息。</li>
+          </ul>
+        </div>
+        <div class="help-section">
+          <h4>🔗 服务管理</h4>
+          <p>管理通过密钥注册的推送服务节点，每个服务代表一个可接收消息推送的终端。</p>
+          <ul>
+            <li><b>服务注册流程：</b>客户端使用密钥管理中创建的 API Key，调用 <code>POST /api/v1/service/register</code> 接口完成注册，需提供名称、endpoint URL、应用包名、支持平台列表。</li>
+            <li><b>密钥校验：</b>注册时必须提供有效的 API Key，系统会校验密钥是否存在于密钥列表中，校验通过才允许注册。密钥与服务的关联通过 secret_hash 建立。</li>
+            <li><b>心跳机制：</b>服务需定期调用 <code>POST /api/v1/service/heartbeat</code> 维持在线状态，超时未心跳的服务会标记为 offline。</li>
+            <li><b>注销服务：</b>点击「注销」按钮可手动注销服务，注销后不再接收消息推送。</li>
+            <li><b>级联删除：</b>删除密钥时，使用该密钥注册的所有服务会被自动级联注销。</li>
+          </ul>
+        </div>
+        <div class="help-section">
+          <h4>🖥️ 节点管理</h4>
+          <p>展示当前部署的 Worker 节点信息，包括角色（Master/Slave）、平台、区域和心跳时间。</p>
+          <ul>
+            <li><b>Master 选举：</b>基于 Cloudflare Durable Object 实现，多个节点自动选举 Master，Master 负责协调消息分发。</li>
+            <li><b>心跳超时：</b>60秒无心跳自动触发重新选举。</li>
+            <li><b>定时任务：</b>每5分钟执行一次 cron，清理过期消息。</li>
+          </ul>
+        </div>
+        <div class="help-section">
+          <h4>🔑 密钥管理</h4>
+          <p>管理 API Key，用于服务注册时的身份认证。每个密钥创建后生成唯一 token，服务注册时必须携带有效密钥。</p>
+          <ul>
+            <li><b>创建密钥：</b>输入密钥名称，点击「创建密钥」，系统自动生成 <code>bmsg_xxx</code> 格式的唯一密钥。创建成功后会显示密钥值，请立即复制保存——密钥仅展示一次。</li>
+            <li><b>密钥用途：</b>服务注册接口 <code>POST /api/v1/service/register</code> 的 secret 字段需填入此密钥。</li>
+            <li><b>删除密钥：</b>删除密钥会级联注销所有使用该密钥注册的服务，操作前会弹出确认提示。</li>
+            <li><b>密钥-服务关联：</b>系统内部通过 secret_hash 建立密钥与服务的关联，删除密钥时自动清理关联服务。</li>
+          </ul>
+        </div>
+        <div class="help-section">
+          <h4>⚙️ 系统设置</h4>
+          <p>管理员管理、系统配置和帮助文档。</p>
+          <ul>
+            <li><b>管理员管理：</b>查看所有管理员（内置 + 动态添加），可添加 GitHub 用户名为管理员，可删除动态添加的管理员。内置管理员不可删除。</li>
+            <li><b>系统配置：</b>菜单位置切换（左侧边栏 / 顶部导航栏），修改后即时生效并持久化到浏览器本地存储。</li>
+          </ul>
+        </div>
+        <div class="help-section">
+          <h4>🔐 登录与认证</h4>
+          <ul>
+            <li><b>登录方式：</b>GitHub OAuth，仅管理员白名单内的 GitHub 用户可登录。</li>
+            <li><b>会话有效期：</b>24小时，过期后需重新登录。</li>
+            <li><b>权限说明：</b>所有管理接口（密钥、管理员、消息发送）均需管理员身份认证，未认证请求返回 401。</li>
+          </ul>
         </div>
       </div>
     </div>
