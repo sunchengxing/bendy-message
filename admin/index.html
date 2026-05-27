@@ -9,6 +9,19 @@
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:#fff;--surface:#f5f5f5;--border:#e0e0e0;--text:#1a1a1a;--text2:#666;--accent:#333;--green:#22c55e;--red:#ef4444;--blue:#3b82f6;--sidebar-w:220px;--sidebar-bg:#fafafa}
 [data-theme=dark]{--bg:#0a0a0a;--surface:#1a1a1a;--border:#333;--text:#e5e5e5;--text2:#999;--accent:#fff;--green:#4ade80;--red:#f87171;--blue:#60a5fa;--sidebar-bg:#111}
+
+/* Layout modes */
+body.layout-left .sidebar{position:fixed;left:0;top:0;bottom:0;width:var(--sidebar-w);background:var(--sidebar-bg);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:10}
+body.layout-left .main{margin-left:var(--sidebar-w)}
+
+body.layout-top .sidebar{position:fixed;left:0;top:0;right:0;height:52px;background:var(--sidebar-bg);border-bottom:1px solid var(--border);display:flex;flex-direction:row;align-items:center;z-index:10}
+body.layout-top .sidebar-logo{padding:0 20px;font-size:15px;font-weight:700;letter-spacing:-.02em;border-bottom:none;border-right:1px solid var(--border)}
+body.layout-top .sidebar-menu{flex:1;display:flex;padding:0;gap:0}
+body.layout-top .sidebar-item{padding:0 16px;font-size:13px;border-left:none;border-bottom:2px solid transparent;line-height:52px}
+body.layout-top .sidebar-item.active{border-left:none;border-bottom-color:var(--blue)}
+body.layout-top .sidebar-footer{display:none}
+body.layout-top .main{margin-left:0;margin-top:52px}
+
 body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 
 /* Login */
@@ -20,17 +33,31 @@ body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);min
 .login-btn:hover{background:#2f363d}
 .login-btn svg{width:20px;height:20px;fill:currentColor}
 
-/* Layout */
-.sidebar{position:fixed;left:0;top:0;bottom:0;width:var(--sidebar-w);background:var(--sidebar-bg);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:10}
+/* Sidebar (left mode defaults) */
+.sidebar{display:flex;flex-direction:column}
 .sidebar-logo{padding:20px 20px 16px;font-size:15px;font-weight:700;letter-spacing:-.02em;border-bottom:1px solid var(--border)}
 .sidebar-menu{flex:1;padding:8px 0}
 .sidebar-item{display:block;padding:10px 20px;font-size:13px;color:var(--text2);cursor:pointer;border-left:3px solid transparent;transition:.1s}
 .sidebar-item:hover{background:var(--surface);color:var(--text)}
 .sidebar-item.active{color:var(--text);border-left-color:var(--blue);background:var(--surface)}
-.sidebar-footer{padding:12px 20px;border-top:1px solid var(--border);font-size:11px;color:var(--text2)}
-.sidebar-footer .admin-name{color:var(--text);font-weight:500;font-size:12px}
-.sidebar-footer .logout-link{display:block;margin-top:4px;cursor:pointer;color:var(--red);font-size:11px}
-.main{margin-left:var(--sidebar-w);min-height:100vh}
+.sidebar-item .menu-icon{margin-right:8px;font-size:14px}
+
+/* Sidebar footer with avatar */
+.sidebar-footer{padding:12px 16px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.sidebar-footer .avatar{width:32px;height:32px;border-radius:50%;background:var(--surface);flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:var(--text)}
+.sidebar-footer .avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.sidebar-footer .user-info{flex:1;min-width:0}
+.sidebar-footer .admin-name{color:var(--text);font-weight:500;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sidebar-footer .admin-role{color:var(--text2);font-size:11px}
+.sidebar-footer .logout-link{cursor:pointer;color:var(--red);font-size:11px;flex-shrink:0}
+
+/* Top layout: show user in topbar */
+body.layout-top .topbar-user{display:flex;align-items:center;gap:8px;margin-left:auto}
+body.layout-top .topbar-user .avatar{width:24px;height:24px;border-radius:50%;background:var(--surface);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--text)}
+body.layout-top .topbar-user .avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+body.layout-left .topbar-user{display:none}
+
+.main{min-height:100vh}
 .topbar{display:flex;justify-content:flex-end;align-items:center;padding:12px 24px;border-bottom:1px solid var(--border);gap:12px}
 .content{padding:24px}
 
@@ -48,20 +75,47 @@ th{color:var(--text2);font-weight:500;font-size:12px;text-transform:uppercase;le
 .badge-offline{background:rgba(239,68,68,.12);color:var(--red)}
 .badge-master{background:rgba(59,130,246,.12);color:var(--blue)}
 .badge-slave{background:rgba(153,153,153,.12);color:var(--text2)}
+.badge-optional{background:rgba(59,130,246,.08);color:var(--blue);font-size:10px}
 .empty{padding:40px;text-align:center;color:var(--text2);font-size:14px}
 .form-row{display:flex;gap:8px;margin-bottom:12px;align-items:center;flex-wrap:wrap}
 .form-row label{font-size:12px;color:var(--text2);min-width:60px}
 .form-row input{padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:13px;flex:1;min-width:120px}
-.form-row select{padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:13px}
+.form-row select{padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:13px;min-width:160px}
 .key-val{font-family:monospace;font-size:12px;background:var(--surface);padding:2px 6px;border-radius:3px;user-select:all}
 .modal-mask{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:99}
 .modal{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:24px;min-width:360px;max-width:480px}
 .modal h3{font-size:16px;margin-bottom:16px}
 .modal .form-row{margin-bottom:10px}
 .modal .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+
+/* Tabs */
+.tab-bar{display:flex;border-bottom:1px solid var(--border);margin-bottom:20px;gap:0}
+.tab-item{padding:8px 20px;font-size:13px;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;transition:.15s}
+.tab-item:hover{color:var(--text)}
+.tab-item.active{color:var(--text);border-bottom-color:var(--blue);font-weight:500}
+
+/* Key created banner */
+.key-created{padding:12px 16px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;margin-bottom:16px;display:flex;align-items:center;gap:12px;font-size:13px}
+.key-created .key-value{font-family:monospace;font-size:13px;background:var(--surface);padding:4px 8px;border-radius:4px;user-select:all;flex:1;word-break:break-all}
+.key-created .copy-btn{cursor:pointer;color:var(--blue);font-size:12px;flex-shrink:0}
+
+/* Toast */
+.toast{position:fixed;top:20px;right:20px;padding:12px 20px;border-radius:8px;font-size:13px;z-index:999;animation:toast-in .2s}
+.toast-success{background:var(--green);color:#fff}
+.toast-error{background:var(--red);color:#fff}
+@keyframes toast-in{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+
+/* Config section */
+.config-group{margin-bottom:24px}
+.config-group h4{font-size:14px;margin-bottom:12px;font-weight:500}
+.config-option{display:flex;align-items:center;gap:12px;padding:10px 0}
+.config-option label{font-size:13px;min-width:80px;color:var(--text2)}
+.radio-group{display:flex;gap:8px}
+.radio-btn{padding:6px 16px;border:1px solid var(--border);border-radius:6px;font-size:13px;cursor:pointer;background:var(--bg);color:var(--text)}
+.radio-btn.active{border-color:var(--blue);color:var(--blue);background:rgba(59,130,246,.06)}
 </style>
 </head>
-<body>
+<body class="layout-left">
 <div v-scope="App()" @vue:mounted="init">
 
 <!-- Login Page -->
@@ -81,20 +135,33 @@ th{color:var(--text2);font-weight:500;font-size:12px;text-transform:uppercase;le
 <div class="sidebar" :data-theme="theme">
   <div class="sidebar-logo">bendy-message</div>
   <div class="sidebar-menu">
-    <div class="sidebar-item" :class="{active:tab==='messages'}" @click="tab='messages';loadMessages()">消息管理</div>
-    <div class="sidebar-item" :class="{active:tab==='services'}" @click="tab='services';loadServices()">服务管理</div>
-    <div class="sidebar-item" :class="{active:tab==='nodes'}" @click="tab='nodes';loadNodes()">节点管理</div>
-    <div class="sidebar-item" :class="{active:tab==='keys'}" @click="tab='keys';loadKeys()">密钥管理</div>
-    <div class="sidebar-item" :class="{active:tab==='settings'}" @click="tab='settings';loadAdmins()">系统设置</div>
+    <div class="sidebar-item" :class="{active:tab==='messages'}" @click="tab='messages';loadMessages()"><span class="menu-icon">💬</span>消息管理</div>
+    <div class="sidebar-item" :class="{active:tab==='services'}" @click="tab='services';loadServices()"><span class="menu-icon">🔗</span>服务管理</div>
+    <div class="sidebar-item" :class="{active:tab==='nodes'}" @click="tab='nodes';loadNodes()"><span class="menu-icon">🖥️</span>节点管理</div>
+    <div class="sidebar-item" :class="{active:tab==='keys'}" @click="tab='keys';loadKeys()"><span class="menu-icon">🔑</span>密钥管理</div>
+    <div class="sidebar-item" :class="{active:tab==='settings'}" @click="tab='settings';loadAdmins()"><span class="menu-icon">⚙️</span>系统设置</div>
   </div>
   <div class="sidebar-footer">
-    <div class="admin-name">{{ currentUser }}</div>
-    <div style="margin-top:2px">管理员</div>
-    <a class="logout-link" @click="logout">退出登录</a>
+    <div class="avatar">
+      <img v-if="avatarUrl" :src="avatarUrl" @error="avatarUrl=null" alt="">
+      <span v-else>{{ currentUser.charAt(0).toUpperCase() }}</span>
+    </div>
+    <div class="user-info">
+      <div class="admin-name">{{ currentUser }}</div>
+      <div class="admin-role">管理员</div>
+    </div>
+    <a class="logout-link" @click="logout">退出</a>
   </div>
 </div>
 <div class="main">
   <div class="topbar">
+    <div class="topbar-user">
+      <div class="avatar">
+        <img v-if="avatarUrl" :src="avatarUrl" @error="avatarUrl=null" alt="">
+        <span v-else>{{ currentUser.charAt(0).toUpperCase() }}</span>
+      </div>
+      <span style="font-size:12px">{{ currentUser }}</span>
+    </div>
     <button class="btn btn-sm" @click="toggleTheme">{{ theme==='dark'?'☀':'☾' }}</button>
   </div>
   <div class="content">
@@ -106,13 +173,13 @@ th{color:var(--text2);font-weight:500;font-size:12px;text-transform:uppercase;le
         <button class="btn btn-primary" @click="showSendMsg=true">发送消息</button>
       </div>
       <table v-if="messages.length">
-        <tr><th>ID</th><th>平台</th><th>应用</th><th>用户</th><th>类型</th><th>时间</th><th></th></tr>
+        <tr><th>ID</th><th>平台</th><th>应用</th><th>用户</th><th>类型</th><th>时间</th><th>操作</th></tr>
         <tr v-for="m in messages" :key="m.id">
           <td class="key-val">{{ m.id.slice(0,8) }}...</td>
-          <td>{{ m.platform }}</td><td>{{ m.app_package }}</td><td>{{ m.user_id }}</td>
+          <td>{{ m.platform }}</td><td>{{ m.app_package }}</td><td>{{ m.user_id || '全部用户' }}</td>
           <td><span class="badge">{{ m.msg_type }}</span></td>
           <td>{{ fmt(m.created_at) }}</td>
-          <td><button class="btn btn-sm" @click="deleteMsg(m.id)">删除</button></td>
+          <td><button class="btn btn-sm btn-danger" @click="deleteMsg(m.id)">删除</button></td>
         </tr>
       </table>
       <div v-else class="empty">暂无消息</div>
@@ -122,7 +189,7 @@ th{color:var(--text2);font-weight:500;font-size:12px;text-transform:uppercase;le
     <div v-show="tab==='services'">
       <h3 style="margin-bottom:16px;font-size:16px">服务管理</h3>
       <table v-if="services.length">
-        <tr><th>名称</th><th>Endpoint</th><th>应用</th><th>平台</th><th>状态</th><th>心跳</th><th></th></tr>
+        <tr><th>名称</th><th>Endpoint</th><th>应用</th><th>平台</th><th>状态</th><th>心跳</th><th>操作</th></tr>
         <tr v-for="s in services" :key="s.id">
           <td>{{ s.name }}</td><td class="key-val">{{ s.endpoint }}</td><td>{{ s.app_package }}</td>
           <td>{{ s.platforms.join(', ') }}</td>
@@ -151,12 +218,18 @@ th{color:var(--text2);font-weight:500;font-size:12px;text-transform:uppercase;le
     <!-- 密钥管理 -->
     <div v-show="tab==='keys'">
       <h3 style="margin-bottom:16px;font-size:16px">密钥管理</h3>
+      <div v-if="lastCreatedKey" class="key-created">
+        <span>✅ 密钥已创建，请妥善保存：</span>
+        <span class="key-value">{{ lastCreatedKey }}</span>
+        <span class="copy-btn" @click="copyKey(lastCreatedKey)">复制</span>
+        <span class="copy-btn" @click="lastCreatedKey=''" style="color:var(--text2)">✕</span>
+      </div>
       <div class="form-row" style="margin-bottom:16px">
         <input v-model="newKeyName" placeholder="密钥名称">
         <button class="btn btn-primary" @click="createKey">创建密钥</button>
       </div>
       <table v-if="keys.length">
-        <tr><th>名称</th><th>密钥</th><th>创建时间</th><th></th></tr>
+        <tr><th>名称</th><th>密钥</th><th>创建时间</th><th>操作</th></tr>
         <tr v-for="k in keys" :key="k.id">
           <td>{{ k.name }}</td>
           <td><span class="key-val">{{ k.key }}</span></td>
@@ -169,20 +242,45 @@ th{color:var(--text2);font-weight:500;font-size:12px;text-transform:uppercase;le
 
     <!-- 系统设置 -->
     <div v-show="tab==='settings'">
-      <h3 style="margin-bottom:16px;font-size:16px">系统设置 — 管理员管理</h3>
-      <div class="form-row" style="margin-bottom:16px">
-        <input v-model="newAdminName" placeholder="GitHub 用户名">
-        <button class="btn btn-primary" @click="addAdmin">添加管理员</button>
+      <h3 style="margin-bottom:16px;font-size:16px">系统设置</h3>
+      <div class="tab-bar">
+        <div class="tab-item" :class="{active:settingsTab==='admins'}" @click="settingsTab='admins';loadAdmins()">管理员管理</div>
+        <div class="tab-item" :class="{active:settingsTab==='config'}" @click="settingsTab='config'">系统配置</div>
       </div>
-      <table v-if="admins.length">
-        <tr><th>用户名</th><th>来源</th><th></th></tr>
-        <tr v-for="a in admins" :key="a.username">
-          <td>{{ a.username }}</td>
-          <td><span class="badge">{{ a.source }}</span></td>
-          <td v-if="a.source==='dynamic'"><button class="btn btn-sm btn-danger" @click="removeAdmin(a.username)">移除</button></td>
-          <td v-else></td>
-        </tr>
-      </table>
+
+      <!-- 管理员管理 -->
+      <div v-show="settingsTab==='admins'">
+        <div class="form-row" style="margin-bottom:16px">
+          <input v-model="newAdminName" placeholder="GitHub 用户名">
+          <button class="btn btn-primary" @click="addAdmin">添加管理员</button>
+        </div>
+        <table v-if="admins.length">
+          <tr><th>用户名</th><th>来源</th><th>操作</th></tr>
+          <tr v-for="a in admins" :key="a.username">
+            <td>{{ a.username }}</td>
+            <td><span class="badge">{{ a.source }}</span></td>
+            <td>
+              <button v-if="a.source==='dynamic'" class="btn btn-sm btn-danger" @click="removeAdmin(a.username)">删除</button>
+              <span v-else style="color:var(--text2);font-size:12px">内置管理员</span>
+            </td>
+          </tr>
+        </table>
+        <div v-else class="empty">暂无管理员</div>
+      </div>
+
+      <!-- 系统配置 -->
+      <div v-show="settingsTab==='config'">
+        <div class="config-group">
+          <h4>界面布局</h4>
+          <div class="config-option">
+            <label>菜单位置</label>
+            <div class="radio-group">
+              <div class="radio-btn" :class="{active:sidebarPosition==='left'}" @click="setSidebarPosition('left')">左侧</div>
+              <div class="radio-btn" :class="{active:sidebarPosition==='top'}" @click="setSidebarPosition('top')">顶部</div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
   </div>
@@ -193,9 +291,22 @@ th{color:var(--text2);font-weight:500;font-size:12px;text-transform:uppercase;le
 <div v-if="showSendMsg" class="modal-mask" @click.self="showSendMsg=false">
   <div class="modal">
     <h3>发送消息</h3>
-    <div class="form-row"><label>平台</label><input v-model="sendForm.platform" placeholder="ios/android/web"></div>
+    <div class="form-row"><label>平台</label>
+      <select v-model="sendForm.platform">
+        <option value="web">Web</option>
+        <option value="pc-windows">PC-Windows</option>
+        <option value="pc-macos">PC-macOS</option>
+        <option value="pc-linux">PC-Linux</option>
+        <option value="android">Android</option>
+        <option value="ios">iOS</option>
+      </select>
+    </div>
     <div class="form-row"><label>应用</label><input v-model="sendForm.app_package" placeholder="com.example.app"></div>
-    <div class="form-row"><label>用户</label><input v-model="sendForm.user_id" placeholder="user_id"></div>
+    <div class="form-row">
+      <label>用户ID</label>
+      <input v-model="sendForm.user_id" placeholder="留空则发送给该应用所有用户">
+      <span class="badge badge-optional">非必填</span>
+    </div>
     <div class="form-row"><label>类型</label><select v-model="sendForm.msg_type"><option value="notification">通知</option><option value="message">消息</option><option value="shell">命令</option></select></div>
     <div class="form-row"><label>内容</label><input v-model="sendForm.content" placeholder='JSON 如 {"text":"hi"}'></div>
     <div class="form-row"><label>存储</label><select v-model="sendForm.persist"><option :value="true">是</option><option :value="false">否</option></select></div>
@@ -203,28 +314,63 @@ th{color:var(--text2);font-weight:500;font-size:12px;text-transform:uppercase;le
   </div>
 </div>
 
+<!-- Toast -->
+<div v-if="toast.show" class="toast" :class="'toast-'+toast.type">{{ toast.msg }}</div>
+
 </div>
 
 <script>
 function App() {
   return {
-    authed: false, currentUser: '', theme: localStorage.getItem('bmsg-theme') || 'dark',
-    tab: 'messages', messages: [], services: [], nodes: [], keys: [], admins: [],
-    showSendMsg: false, newKeyName: '', newAdminName: '',
-    sendForm: { platform:'ios', app_package:'', user_id:'', msg_type:'notification', content:'{"text":"hello"}', persist:true },
+    authed: false, currentUser: '', avatarUrl: null, theme: localStorage.getItem('bmsg-theme') || 'dark',
+    tab: 'messages', settingsTab: 'admins', sidebarPosition: localStorage.getItem('bmsg-sidebar-pos') || 'left',
+    messages: [], services: [], nodes: [], keys: [], admins: [],
+    showSendMsg: false, newKeyName: '', newAdminName: '', lastCreatedKey: '',
+    sendForm: { platform:'web', app_package:'', user_id:'', msg_type:'notification', content:'{"text":"hello"}', persist:true },
+    toast: { show: false, msg: '', type: 'success' },
     init() {
       this.applyTheme()
+      this.applySidebarPosition()
       this.checkAuth()
     },
     applyTheme() { document.documentElement.setAttribute('data-theme', this.theme) },
     toggleTheme() { this.theme = this.theme==='dark'?'light':'dark'; localStorage.setItem('bmsg-theme', this.theme); this.applyTheme() },
+    applySidebarPosition() {
+      document.body.classList.remove('layout-left','layout-top')
+      document.body.classList.add('layout-' + this.sidebarPosition)
+    },
+    setSidebarPosition(pos) {
+      this.sidebarPosition = pos
+      localStorage.setItem('bmsg-sidebar-pos', pos)
+      this.applySidebarPosition()
+    },
+    showToast(msg, type) {
+      this.toast = { show: true, msg, type: type || 'success' }
+      setTimeout(() => { this.toast.show = false }, 3000)
+    },
     async api(path, opts) {
-      try { const r = await fetch(path.startsWith('/') ? path : '/api/v1/' + path, opts); return await r.json() } catch(e) { console.error(e); return null }
+      try {
+        const r = await fetch(path.startsWith('/') ? path : '/api/v1/' + path, opts)
+        const data = await r.json()
+        if (data.code !== undefined && data.code !== 0) {
+          this.showToast(data.message || '操作失败', 'error')
+          return null
+        }
+        return data
+      } catch(e) {
+        console.error(e)
+        this.showToast('请求失败', 'error')
+        return null
+      }
     },
     async checkAuth() {
       const r = await this.api('/api/auth/session')
-      if (r && r.code === 0) { this.authed = true; this.currentUser = r.username; this.loadMessages() }
-      else { this.authed = false }
+      if (r && r.code === 0) {
+        this.authed = true
+        this.currentUser = r.username
+        this.avatarUrl = 'https://github.com/' + r.username + '.png?size=64'
+        this.loadMessages()
+      } else { this.authed = false }
     },
     async logout() { await fetch('/api/auth/logout', {method:'POST'}); this.authed = false },
     async loadMessages() { const r = await this.api('message/list'); if(r?.data) this.messages = r.data },
@@ -232,36 +378,52 @@ function App() {
     async loadNodes() { const r = await this.api('node/list'); if(r?.data) this.nodes = r.data },
     async loadKeys() { const r = await this.api('admin/key/list'); if(r?.data) this.keys = r.data },
     async loadAdmins() { const r = await this.api('admin/list'); if(r?.data) this.admins = r.data },
-    async deleteMsg(id) { await this.api('message/'+id, {method:'DELETE'}); this.loadMessages() },
-    async unregisterSvc(id) { if(!confirm('确认注销该服务?')) return; await this.api('service/unregister',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})}); this.loadServices() },
+    async deleteMsg(id) { if(!await this.api('message/'+id, {method:'DELETE'})) return; this.showToast('消息已删除'); this.loadMessages() },
+    async unregisterSvc(id) {
+      if(!confirm('确认注销该服务?')) return
+      if(!await this.api('service/unregister',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})})) return
+      this.showToast('服务已注销'); this.loadServices()
+    },
     async createKey() {
-      if(!this.newKeyName) return;
-      await this.api('admin/key/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:this.newKeyName})});
-      this.newKeyName=''; this.loadKeys()
+      if(!this.newKeyName) { this.showToast('请输入密钥名称','error'); return }
+      const r = await this.api('admin/key/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:this.newKeyName})})
+      if(!r) return
+      if(r.data && r.data.key) { this.lastCreatedKey = r.data.key }
+      this.newKeyName = ''
+      this.showToast('密钥创建成功')
+      this.loadKeys()
+    },
+    copyKey(key) {
+      navigator.clipboard.writeText(key).then(() => this.showToast('已复制到剪贴板')).catch(() => {})
     },
     async deleteKey(id) {
-      if(!confirm('删除密钥将同步注销使用该密钥注册的所有服务，确认删除?')) return;
-      await this.api('admin/key/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});
-      this.loadKeys(); this.loadServices()
+      if(!confirm('删除密钥将同步注销使用该密钥注册的所有服务，确认删除?')) return
+      if(!await this.api('admin/key/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})})) return
+      this.showToast('密钥已删除'); this.loadKeys(); this.loadServices()
     },
     async addAdmin() {
-      if(!this.newAdminName) return;
-      await this.api('admin/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:this.newAdminName})});
-      this.newAdminName=''; this.loadAdmins()
+      if(!this.newAdminName) { this.showToast('请输入用户名','error'); return }
+      if(!await this.api('admin/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:this.newAdminName})})) return
+      this.newAdminName = ''; this.showToast('管理员已添加'); this.loadAdmins()
     },
     async removeAdmin(username) {
-      if(!confirm('确认移除管理员 '+username+'?')) return;
-      await this.api('admin/remove',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username})});
-      this.loadAdmins()
+      if(!confirm('确认删除管理员 '+username+'?')) return
+      if(!await this.api('admin/remove',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username})})) return
+      this.showToast('管理员已删除'); this.loadAdmins()
     },
     async sendMessage() {
       let content;
       try { content = JSON.parse(this.sendForm.content) } catch(e) { content = {text:this.sendForm.content} }
-      await this.api('message/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
-        target:{platform:this.sendForm.platform,app_package:this.sendForm.app_package,user_id:this.sendForm.user_id,msg_type:this.sendForm.msg_type},
-        content, persist:this.sendForm.persist
-      })});
-      this.showSendMsg=false; this.loadMessages()
+      const target = {
+        platform: this.sendForm.platform,
+        app_package: this.sendForm.app_package,
+        msg_type: this.sendForm.msg_type
+      }
+      if (this.sendForm.user_id) { target.user_id = this.sendForm.user_id }
+      if(!await this.api('message/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+        target, content, persist:this.sendForm.persist
+      })})) return
+      this.showToast('消息已发送'); this.showSendMsg=false; this.loadMessages()
     },
     fmt(ts) { if(!ts) return '-'; return new Date(ts*1000).toLocaleString('zh-CN',{hour12:false}) }
   }
