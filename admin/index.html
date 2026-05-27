@@ -348,23 +348,24 @@ function App() {
       this.toast = { show: true, msg, type: type || 'success' }
       setTimeout(() => { this.toast.show = false }, 3000)
     },
-    async api(path, opts) {
+    async api(path, opts, silent) {
       try {
         const r = await fetch(path.startsWith('/') ? path : '/api/v1/' + path, opts)
+        if (r.status === 401) return null
         const data = await r.json()
         if (data.code !== undefined && data.code !== 0) {
-          this.showToast(data.message || '操作失败', 'error')
+          if (!silent) this.showToast(data.message || '操作失败', 'error')
           return null
         }
         return data
       } catch(e) {
         console.error(e)
-        this.showToast('请求失败', 'error')
+        if (!silent) this.showToast('请求失败', 'error')
         return null
       }
     },
     async checkAuth() {
-      const r = await this.api('/api/auth/session')
+      const r = await this.api('/api/auth/session', null, true)
       if (r && r.code === 0) {
         this.authed = true
         this.currentUser = r.username
