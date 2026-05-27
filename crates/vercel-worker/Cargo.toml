@@ -1,0 +1,24 @@
+[package]
+name = "bmsg-vercel-worker"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+bmsg-core = { path = "../core" }
+vercel_runtime = { version = "2" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+sqlx = { version = "0.8", features = ["runtime-tokio", "postgres", "json"] }
+reqwest = { version = "0.12", features = ["json"] }
+sha2 = "0.10"
+hex = "0.4"
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+tower = "0.5"
+hyper = { version = "1", features = ["server"] }
+http-body-util = "0.1"
+
+[[bin]]
+name = "bmsg-vercel"
+path = "api/main.rs"

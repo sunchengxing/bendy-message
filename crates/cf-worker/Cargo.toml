@@ -1,0 +1,16 @@
+[package]
+name = "bmsg-cf-worker"
+version.workspace = true
+edition.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+bmsg-core = { path = "../core" }
+worker = { version = "0.8", features = ["d1"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+async-trait = { workspace = true }
+uuid = { version = "1", features = ["v4", "serde", "js"] }
+chrono = { version = "0.4", features = ["serde"] }

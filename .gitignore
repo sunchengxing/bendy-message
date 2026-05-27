@@ -1,0 +1,9 @@
+/target
+**/target
+.env
+.env.*
+!.env.example
+node_modules
+.vercel
+.wrangler
+*.wasm

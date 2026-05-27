@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/main.rs",
+      "use": "@vercel/rust"
+    }
+  ],
+  "routes": [
+    { "src": "/api/v1/(.*)", "dest": "/api/main.rs" },
+    { "src": "/admin", "dest": "/api/main.rs" }
+  ],
+  "env": {
+    "DATABASE_URL": "@database_url",
+    "UPSTASH_REDIS_REST_URL": "@upstash_redis_rest_url",
+    "UPSTASH_REDIS_REST_TOKEN": "@upstash_redis_rest_token",
+    "REGISTRATION_SECRET": "@registration_secret"
+  }
+}
