@@ -1,8 +1,7 @@
 use crate::error::BmsgError;
 use crate::message::{Message, Target};
-use crate::registry::ServiceRegistry;
+use crate::registry::{RegisteredService, ServiceRegistry};
 use crate::storage::MessageStorage;
-use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
 /// 路由结果
@@ -21,7 +20,38 @@ pub struct RouteFailure {
     pub error: String,
 }
 
-/// 路由引擎
+/// 匹配已注册服务与消息目标
+pub fn match_services(msg_target: &Target, services: &[RegisteredService]) -> Vec<RegisteredService> {
+    services
+        .iter()
+        .filter(|svc| {
+            let platform_match =
+                svc.platforms.contains(&msg_target.platform) || svc.platforms.contains(&"*".to_string());
+            let app_match = svc.app_package == msg_target.app_package || svc.app_package == "*";
+            platform_match && app_match
+        })
+        .cloned()
+        .collect()
+}
+
+/// 构建投递 payload（发送给目标服务的 JSON body）
+pub fn build_delivery_payload(msg: &Message) -> serde_json::Value {
+    serde_json::json!({
+        "id": msg.id,
+        "target": {
+            "platform": msg.target.platform,
+            "app_package": msg.target.app_package,
+            "user_id": msg.target.user_id,
+            "msg_type": msg.target.msg_type.as_str(),
+        },
+        "msg_type": msg.msg_type.as_str(),
+        "content": msg.content,
+        "persist": msg.persist,
+        "created_at": msg.created_at,
+    })
+}
+
+/// 路由引擎（纯逻辑，投递由平台适配层负责）
 pub struct Router<S: MessageStorage, R: ServiceRegistry> {
     storage: S,
     registry: R,
@@ -32,51 +62,35 @@ impl<S: MessageStorage, R: ServiceRegistry> Router<S, R> {
         Self { storage, registry }
     }
 
-    /// 路由消息：存储（如需）+ 投递到匹配服务
+    /// 路由消息：存储（如需）+ 返回匹配服务列表
     pub async fn route(&self, msg: Message) -> Result<RouteResult, BmsgError> {
         let message_id = msg.id.clone();
         let persist = msg.persist;
         let mut stored = false;
 
-        // 存储
         if persist {
             self.storage.store(&msg).await?;
             stored = true;
         }
 
-        // 查找匹配的已注册服务
         let services = self.registry.list().await?;
-        let mut delivered = Vec::new();
-        let mut failed = Vec::new();
+        let matched = match_services(&msg.target, &services);
 
-        let route_target = Target {
-            platform: msg.target.platform.clone(),
-            app_package: msg.target.app_package.clone(),
-            user_id: msg.target.user_id.clone(),
-            msg_type: msg.msg_type.clone(),
-        };
+        // 投递结果由调用方（平台适配层）填充
+        let delivered: Vec<String> = matched.iter().map(|s| s.id.clone()).collect();
 
-        for svc in services {
-            // 匹配检查：服务的 platforms 包含消息目标平台
-            let platform_match = svc.platforms.contains(&route_target.platform)
-                || svc.platforms.contains(&"*".to_string());
-            let app_match = svc.app_package == route_target.app_package
-                || svc.app_package == "*";
+        Ok(RouteResult {
+            message_id,
+            delivered,
+            failed: Vec::new(),
+            stored,
+        })
+    }
 
-            if platform_match && app_match {
-                // 投递消息到服务 endpoint
-                match self.deliver(&svc.endpoint, &msg).await {
-                    Ok(_) => delivered.push(svc.id.clone()),
-                    Err(e) => failed.push(RouteFailure {
-                        service_id: svc.id.clone(),
-                        endpoint: svc.endpoint.clone(),
-                        error: e.to_string(),
-                    }),
-                }
-            }
-        }
-
-        Ok(RouteResult { message_id, delivered, failed, stored })
+    /// 返回匹配服务列表（含 endpoint），供平台适配层做实际投递
+    pub async fn find_routes(&self, msg: &Message) -> Result<Vec<RegisteredService>, BmsgError> {
+        let services = self.registry.list().await?;
+        Ok(match_services(&msg.target, &services))
     }
 
     /// 批量路由
@@ -87,17 +101,4 @@ impl<S: MessageStorage, R: ServiceRegistry> Router<S, R> {
         }
         results
     }
-
-    /// 投递消息到目标 endpoint
-    async fn deliver(&self, _endpoint: &str, _msg: &Message) -> Result<(), BmsgError> {
-        // 投递逻辑由平台适配层实现，这里提供通用 HTTP POST
-        // 实际在 cf-worker 和 vercel-worker 中各自实现
-        Err(BmsgError::DeliveryNotImplemented)
-    }
-}
-
-/// 可投递的路由器 trait（平台适配层实现实际 HTTP 投递）
-#[async_trait(?Send)]
-pub trait Deliverable {
-    async fn deliver(&self, endpoint: &str, msg: &Message) -> Result<(), BmsgError>;
 }

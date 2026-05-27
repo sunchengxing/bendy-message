@@ -6,7 +6,7 @@ pub mod registry;
 pub mod error;
 
 pub use message::{Message, MessageType, Target, MessageFilter, SendMessageRequest, BatchSendMessageRequest, ApiResponse};
-pub use router::Router;
+pub use router::{Router, RouteResult, RouteFailure, match_services, build_delivery_payload};
 pub use storage::MessageStorage;
 pub use election::{Election, NodeInfo, NodeRole};
 pub use registry::{ServiceRegistry, RegisteredService, RegisterRequest, ServiceStatus};

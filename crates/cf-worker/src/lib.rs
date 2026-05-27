@@ -3,7 +3,7 @@ mod election;
 mod registry;
 mod admin;
 
-use bmsg_core::{SendMessageRequest, BatchSendMessageRequest, ApiResponse, BmsgError, MessageStorage, ServiceRegistry, Election};
+use bmsg_core::{SendMessageRequest, BatchSendMessageRequest, ApiResponse, BmsgError, MessageStorage, ServiceRegistry, Election, match_services, build_delivery_payload};
 use worker::*;
 
 fn bmsg_err(e: BmsgError) -> Error {
@@ -77,9 +77,32 @@ async fn handle_send_message(mut req: Request, ctx: RouteContext<()>) -> Result<
         st.store(&msg).await.map_err(bmsg_err)?;
     }
 
+    // 路由投递：查找匹配服务并 POST
+    let db = ctx.env.d1("bmsg-db")?;
+    let reg = registry::KvRegistry::new(db);
+    let services = reg.list().await.map_err(bmsg_err)?;
+    let matched = match_services(&msg.target, &services);
+    let payload = build_delivery_payload(&msg);
+
+    let mut delivered = Vec::new();
+    let mut failed = Vec::new();
+    for svc in &matched {
+        let payload_val = wasm_bindgen::JsValue::from_str(&serde_json::to_string(&payload).unwrap_or_default());
+        let deliver_req = Request::new_with_init(&svc.endpoint, &worker::RequestInit {
+            method: worker::Method::Post,
+            body: Some(payload_val),
+            ..Default::default()
+        })?;
+        match Fetch::Request(deliver_req).send().await {
+            Ok(_) => delivered.push(svc.id.clone()),
+            Err(e) => failed.push(serde_json::json!({"service_id": svc.id, "error": e.to_string()})),
+        }
+    }
+
     let resp = ApiResponse::success(serde_json::json!({
         "id": id,
-        "status": "routed",
+        "delivered": delivered.len(),
+        "failed": failed.len(),
         "persist": persist,
     }));
     Response::from_json(&resp)

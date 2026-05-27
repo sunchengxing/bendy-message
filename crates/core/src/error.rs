@@ -17,9 +17,6 @@ pub enum BmsgError {
     #[error("delivery error: {0}")]
     DeliveryError(String),
 
-    #[error("delivery not implemented in core; use platform adapter")]
-    DeliveryNotImplemented,
-
     #[error("election error: {0}")]
     ElectionError(String),
 
@@ -43,7 +40,6 @@ impl BmsgError {
             Self::InvalidRequest(_) => 1003,
             Self::StorageError(_)
             | Self::DeliveryError(_)
-            | Self::DeliveryNotImplemented
             | Self::ElectionError(_)
             | Self::RegistryError(_)
             | Self::Internal(_) => 1000,

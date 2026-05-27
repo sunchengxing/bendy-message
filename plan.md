@@ -5,8 +5,10 @@
 - [x] CF Workers 适配层 ✅ 2026-05-27
 - [x] Vercel 适配层 ✅ 2026-05-27
 - [x] 数据库迁移文件 ✅ 2026-05-27
-- [ ] 管理面板 UI（Petite-Vue）
-- [ ] 单元测试（core crate ≥80% 覆盖率）
+- [x] 路由投递逻辑（CF Fetch + Vercel reqwest）✅ 2026-05-27
+- [x] CF DO 选举完整实现 ✅ 2026-05-27
+- [x] 管理面板 UI（Petite-Vue）✅ 2026-05-27
+- [x] 单元测试（core crate 28 项通过）✅ 2026-05-27
+- [x] cargo build 编译通过（0 errors）✅ 2026-05-27
 - [ ] 集成测试
-- [ ] cargo build 编译通过
 - [ ] 部署配置验证

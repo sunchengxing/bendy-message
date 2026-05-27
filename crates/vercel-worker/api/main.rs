@@ -43,10 +43,35 @@ async fn handle(req: Request) -> Result<Response<ResponseBody>, Error> {
             let body: SendMessageRequest = serde_json::from_slice(body_slice).map_err(|e| Error::from(e.to_string()))?;
             let msg = body.into_message();
             let id = msg.id.clone();
-            if msg.persist {
-                storage::PgStorage::new(pool).store(&msg).await.map_err(|e| Error::from(e.to_string()))?;
+            let persist = msg.persist;
+            if persist {
+                storage::PgStorage::new(pool.clone()).store(&msg).await.map_err(|e| Error::from(e.to_string()))?;
             }
-            json_response(ApiResponse::success(serde_json::json!({"id": id, "status": "routed"})))
+
+            let reg = registry::UpstashRegistry::new(pool, upstash_url.clone(), upstash_token.clone());
+            let services = reg.list().await.map_err(|e| Error::from(e.to_string()))?;
+            let matched = bmsg_core::match_services(&msg.target, &services);
+            let payload = bmsg_core::build_delivery_payload(&msg);
+
+            let mut delivered = Vec::new();
+            let mut failed = Vec::new();
+            for svc in &matched {
+                match reqwest::Client::new()
+                    .post(&svc.endpoint)
+                    .json(&payload)
+                    .send().await
+                {
+                    Ok(_) => delivered.push(svc.id.clone()),
+                    Err(e) => failed.push(serde_json::json!({"service_id": svc.id, "error": e.to_string()})),
+                }
+            }
+
+            json_response(ApiResponse::success(serde_json::json!({
+                "id": id,
+                "delivered": delivered.len(),
+                "failed": failed.len(),
+                "persist": persist,
+            })))
         }
         ("POST", ["api", "v1", "message", "batch"]) => {
             let body: BatchSendMessageRequest = serde_json::from_slice(body_slice).map_err(|e| Error::from(e.to_string()))?;
