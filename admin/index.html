@@ -119,6 +119,7 @@ th{color:var(--text2);font-weight:500;font-size:12px;text-transform:uppercase;le
 .help-section ul{padding-left:20px;margin:0}
 .help-section li{margin-bottom:4px}
 .help-section code{font-family:monospace;font-size:12px;background:var(--surface);padding:1px 4px;border-radius:3px}
+pre{white-space:pre-wrap;word-break:break-all}
 </style>
 </head>
 <body class="layout-left">
@@ -253,6 +254,7 @@ th{color:var(--text2);font-weight:500;font-size:12px;text-transform:uppercase;le
         <div class="tab-item" :class="{active:settingsTab==='admins'}" @click="settingsTab='admins';loadAdmins()">管理员管理</div>
         <div class="tab-item" :class="{active:settingsTab==='config'}" @click="settingsTab='config'">系统配置</div>
         <div class="tab-item" :class="{active:settingsTab==='help'}" @click="settingsTab='help'">系统帮助</div>
+        <div class="tab-item" :class="{active:settingsTab==='api'}" @click="settingsTab='api'">接口文档</div>
       </div>
 
       <!-- 管理员管理 -->
@@ -348,9 +350,29 @@ th{color:var(--text2);font-weight:500;font-size:12px;text-transform:uppercase;le
           </ul>
         </div>
       </div>
-    </div>
 
-  </div>
+      <!-- 接口文档 -->
+      <div v-show="settingsTab==='api'" style="font-size:13px">
+        <div class="api-doc" v-for="ep in apiDocs" :key="ep.path" style="margin-bottom:24px;border:1px solid var(--border);border-radius:8px;overflow:hidden">
+          <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--surface);border-bottom:1px solid var(--border)">
+            <span class="badge" :style="{background:ep.color,color:'#fff',fontFamily:'monospace',fontSize:'11px'}">{{ ep.method }}</span>
+            <code style="font-size:12px;font-weight:600">{{ ep.path }}</code>
+            <span style="color:var(--text2);font-size:12px">{{ ep.desc }}</span>
+          </div>
+          <div style="padding:12px 16px">
+            <div v-if="ep.auth" style="margin-bottom:8px;color:var(--text2);font-size:12px">🔒 需要管理员认证</div>
+            <div v-if="ep.params" style="margin-bottom:10px">
+              <div style="color:var(--text2);font-size:11px;font-weight:500;margin-bottom:4px">请求参数</div>
+              <pre style="background:var(--surface);padding:10px 12px;border-radius:6px;font-size:12px;overflow-x:auto;line-height:1.5;margin:0">{{ ep.params }}</pre>
+            </div>
+            <div>
+              <div style="color:var(--text2);font-size:11px;font-weight:500;margin-bottom:4px">响应结果</div>
+              <pre style="background:var(--surface);padding:10px 12px;border-radius:6px;font-size:12px;overflow-x:auto;line-height:1.5;margin:0">{{ ep.response }}</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 </div>
 </template>
 
@@ -493,7 +515,60 @@ function App() {
       })})) return
       this.showToast('消息已发送'); this.showSendMsg=false; this.loadMessages()
     },
-    fmt(ts) { if(!ts) return '-'; return new Date(ts*1000).toLocaleString('zh-CN',{hour12:false}) }
+    fmt(ts) { if(!ts) return '-'; return new Date(ts*1000).toLocaleString('zh-CN',{hour12:false}) },
+    apiDocs: [
+      {method:'POST',path:'/api/v1/message/send',desc:'发送消息',auth:true,color:'#22c55e',
+        params:'{\n  "target": {\n    "platform": "android",      // 必填: web|pc-windows|pc-macos|pc-linux|android|ios\n    "app_package": "com.example.app", // 必填: 应用包名\n    "user_id": "user123",            // 非必填: 留空则对该应用所有用户广播\n    "msg_type": "notification"        // 必填: notification|message|shell\n  },\n  "content": {"text": "hello"}, // 必填: JSON格式消息内容\n  "persist": true                 // 必填: 是否持久化存储\n}',
+        response:'{\n  "code": 0,\n  "data": {\n    "id": "cbb2565c-...",\n    "delivered": 2,  // 成功投递的服务数\n    "failed": 0,     // 投递失败数\n    "persist": true\n  }\n}'},
+      {method:'POST',path:'/api/v1/message/batch',desc:'批量发送消息',auth:true,color:'#22c55e',
+        params:'{\n  "messages": [\n    {\n      "target": {"platform":"web","app_package":"com.app","msg_type":"notification"},\n      "content": {"text":"hi"},\n      "persist": true\n    }\n  ]\n}',
+        response:'{\n  "code": 0,\n  "data": [\n    {"id":"xxx","status":"routed"}\n  ]\n}'},
+      {method:'GET',path:'/api/v1/message/list',desc:'消息列表',auth:true,color:'#3b82f6',
+        params:'无参数',
+        response:'{\n  "code": 0,\n  "data": [\n    {\n      "id": "cbb2565c-...",\n      "target": {"platform":"ios","app_package":"com.test","user_id":"u1","msg_type":"notification"},\n      "content": {"text":"hello"},\n      "msg_type": "notification",\n      "persist": true,\n      "created_at": 1779875495\n    }\n  ]\n}'},
+      {method:'GET',path:'/api/v1/message/:id',desc:'获取单条消息',auth:true,color:'#3b82f6',
+        params:'路径参数: id = 消息ID',
+        response:'{\n  "code": 0,\n  "data": {\n    "id": "cbb2565c-...",\n    "target": {...},\n    "content": {"text":"hello"},\n    "msg_type": "notification",\n    "persist": true\n  }\n}'},
+      {method:'DELETE',path:'/api/v1/message/:id',desc:'删除消息',auth:true,color:'#ef4444',
+        params:'路径参数: id = 消息ID',
+        response:'{\n  "code": 0,\n  "data": {"deleted": true}\n}'},
+      {method:'POST',path:'/api/v1/service/register',desc:'服务注册',auth:false,color:'#22c55e',
+        params:'{\n  "name": "my-push-service",        // 必填: 服务名称\n  "endpoint": "https://api.example.com/push", // 必填: 推送接收地址\n  "app_package": "com.example.app", // 必填: 应用包名\n  "platforms": ["android","ios"],  // 必填: 支持的平台列表\n  "secret": "bmsg_xxxxxxxx"        // 必填: API密钥(密钥管理中创建)\n}',
+        response:'{\n  "code": 0,\n  "data": {\n    "id": "svc-xxx",\n    "name": "my-push-service",\n    "endpoint": "https://api.example.com/push",\n    "status": "online"\n  }\n}'},
+      {method:'POST',path:'/api/v1/service/unregister',desc:'注销服务',auth:false,color:'#22c55e',
+        params:'{\n  "id": "svc-xxx"  // 必填: 服务ID\n}',
+        response:'{\n  "code": 0,\n  "data": {"unregistered": true}\n}'},
+      {method:'POST',path:'/api/v1/service/heartbeat',desc:'服务心跳',auth:false,color:'#22c55e',
+        params:'{\n  "id": "svc-xxx"  // 必填: 服务ID\n}',
+        response:'{\n  "code": 0,\n  "data": {"heartbeat": "ok"}\n}'},
+      {method:'GET',path:'/api/v1/service/list',desc:'服务列表',auth:true,color:'#3b82f6',
+        params:'无参数',
+        response:'{\n  "code": 0,\n  "data": [\n    {\n      "id": "svc-xxx",\n      "name": "my-push-service",\n      "endpoint": "https://...",\n      "platforms": ["android","ios"],\n      "status": "online",\n      "last_heartbeat": 1779875495\n    }\n  ]\n}'},
+      {method:'GET',path:'/api/v1/node/list',desc:'节点列表',auth:true,color:'#3b82f6',
+        params:'无参数',
+        response:'{\n  "code": 0,\n  "data": [\n    {\n      "id": "node-xxx",\n      "role": "master",  // master|slave\n      "platform": "cf-workers",\n      "region": "EEUR",\n      "last_heartbeat": 1779875495\n    }\n  ]\n}'},
+      {method:'POST',path:'/api/v1/node/heartbeat',desc:'节点心跳',auth:true,color:'#22c55e',
+        params:'无参数',
+        response:'{\n  "code": 0,\n  "data": {"heartbeat": "ok"}\n}'},
+      {method:'POST',path:'/api/v1/admin/key/create',desc:'创建密钥',auth:true,color:'#22c55e',
+        params:'{\n  "name": "my-key"  // 必填: 密钥名称\n}',
+        response:'{\n  "code": 0,\n  "data": {"key": "bmsg_a1b2c3d4e5f6..."}\n}'},
+      {method:'POST',path:'/api/v1/admin/key/delete',desc:'删除密钥(级联注销关联服务)',auth:true,color:'#ef4444',
+        params:'{\n  "id": "key-uuid-xxx"  // 必填: 密钥ID\n}',
+        response:'{\n  "code": 0,\n  "message": "ok"\n}'},
+      {method:'GET',path:'/api/v1/admin/key/list',desc:'密钥列表',auth:true,color:'#3b82f6',
+        params:'无参数',
+        response:'{\n  "code": 0,\n  "data": [\n    {"id":"key-uuid","name":"my-key","key":"bmsg_xxx","created_at":1779875495}\n  ]\n}'},
+      {method:'POST',path:'/api/v1/admin/add',desc:'添加管理员',auth:true,color:'#22c55e',
+        params:'{\n  "username": "github-user"  // 必填: GitHub用户名\n}',
+        response:'{\n  "code": 0,\n  "message": "ok"\n}'},
+      {method:'POST',path:'/api/v1/admin/remove',desc:'删除管理员(不可删内置)',auth:true,color:'#ef4444',
+        params:'{\n  "username": "github-user"  // 必填: dynamic来源的管理员用户名\n}',
+        response:'{\n  "code": 0,\n  "message": "ok"\n}'},
+      {method:'GET',path:'/api/v1/admin/list',desc:'管理员列表',auth:true,color:'#3b82f6',
+        params:'无参数',
+        response:'{\n  "code": 0,\n  "data": [\n    {"username":"fntp","source":"builtin"},\n    {"username":"custom-user","source":"dynamic"}\n  ]\n}'}
+    ]
   }
 }
 PetiteVue.createApp().mount()
