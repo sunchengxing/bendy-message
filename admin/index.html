@@ -7,19 +7,39 @@
 <script src="https://unpkg.com/petite-vue@0.4.1/dist/petite-vue.iife.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#fff;--surface:#f5f5f5;--border:#e0e0e0;--text:#1a1a1a;--text2:#666;--accent:#333;--green:#22c55e;--red:#ef4444;--blue:#3b82f6}
-[data-theme=dark]{--bg:#0a0a0a;--surface:#1a1a1a;--border:#333;--text:#e5e5e5;--text2:#999;--accent:#fff;--green:#4ade80;--red:#f87171;--blue:#60a5fa}
+:root{--bg:#fff;--surface:#f5f5f5;--border:#e0e0e0;--text:#1a1a1a;--text2:#666;--accent:#333;--green:#22c55e;--red:#ef4444;--blue:#3b82f6;--sidebar-w:220px;--sidebar-bg:#fafafa}
+[data-theme=dark]{--bg:#0a0a0a;--surface:#1a1a1a;--border:#333;--text:#e5e5e5;--text2:#999;--accent:#fff;--green:#4ade80;--red:#f87171;--blue:#60a5fa;--sidebar-bg:#111}
 body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
-.header{display:flex;justify-content:space-between;align-items:center;padding:16px 24px;border-bottom:1px solid var(--border)}
-.header h1{font-size:18px;font-weight:600;letter-spacing:-.02em}
-.header-actions{display:flex;gap:12px;align-items:center}
+
+/* Login */
+.login-page{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--bg)}
+.login-box{text-align:center}
+.login-box h1{font-size:28px;font-weight:700;margin-bottom:8px;letter-spacing:-.03em}
+.login-box p{color:var(--text2);font-size:14px;margin-bottom:32px}
+.login-btn{display:inline-flex;align-items:center;gap:8px;padding:12px 28px;background:#24292f;color:#fff;border:none;border-radius:8px;font-size:15px;cursor:pointer;font-weight:500}
+.login-btn:hover{background:#2f363d}
+.login-btn svg{width:20px;height:20px;fill:currentColor}
+
+/* Layout */
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:var(--sidebar-w);background:var(--sidebar-bg);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:10}
+.sidebar-logo{padding:20px 20px 16px;font-size:15px;font-weight:700;letter-spacing:-.02em;border-bottom:1px solid var(--border)}
+.sidebar-menu{flex:1;padding:8px 0}
+.sidebar-item{display:block;padding:10px 20px;font-size:13px;color:var(--text2);cursor:pointer;border-left:3px solid transparent;transition:.1s}
+.sidebar-item:hover{background:var(--surface);color:var(--text)}
+.sidebar-item.active{color:var(--text);border-left-color:var(--blue);background:var(--surface)}
+.sidebar-footer{padding:12px 20px;border-top:1px solid var(--border);font-size:11px;color:var(--text2)}
+.sidebar-footer .admin-name{color:var(--text);font-weight:500;font-size:12px}
+.sidebar-footer .logout-link{display:block;margin-top:4px;cursor:pointer;color:var(--red);font-size:11px}
+.main{margin-left:var(--sidebar-w);min-height:100vh}
+.topbar{display:flex;justify-content:flex-end;align-items:center;padding:12px 24px;border-bottom:1px solid var(--border);gap:12px}
+.content{padding:24px}
+
+/* Components */
 .btn{padding:6px 14px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);cursor:pointer;font-size:13px}
 .btn:hover{border-color:var(--accent)}
-.btn-primary{background:var(--accent);color:var(--bg);border-color:var(--accent)}
-.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);padding:0 24px}
-.tab{padding:12px 20px;font-size:14px;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent}
-.tab.active{color:var(--text);border-bottom-color:var(--accent)}
-.content{padding:24px}
+.btn-primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn-danger{background:var(--red);color:#fff;border-color:var(--red)}
+.btn-sm{padding:4px 10px;font-size:11px}
 table{width:100%;border-collapse:collapse;font-size:13px}
 th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--border)}
 th{color:var(--text2);font-weight:500;font-size:12px;text-transform:uppercase;letter-spacing:.05em}
@@ -29,114 +49,221 @@ th{color:var(--text2);font-weight:500;font-size:12px;text-transform:uppercase;le
 .badge-master{background:rgba(59,130,246,.12);color:var(--blue)}
 .badge-slave{background:rgba(153,153,153,.12);color:var(--text2)}
 .empty{padding:40px;text-align:center;color:var(--text2);font-size:14px}
+.form-row{display:flex;gap:8px;margin-bottom:12px;align-items:center;flex-wrap:wrap}
+.form-row label{font-size:12px;color:var(--text2);min-width:60px}
+.form-row input{padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:13px;flex:1;min-width:120px}
+.form-row select{padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:13px}
+.key-val{font-family:monospace;font-size:12px;background:var(--surface);padding:2px 6px;border-radius:3px;user-select:all}
+.modal-mask{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:99}
+.modal{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:24px;min-width:360px;max-width:480px}
+.modal h3{font-size:16px;margin-bottom:16px}
+.modal .form-row{margin-bottom:10px}
+.modal .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
 </style>
 </head>
 <body>
 <div v-scope="App()" @vue:mounted="init">
-  <div class="header">
+
+<!-- Login Page -->
+<div v-if="!authed" class="login-page" :data-theme="theme">
+  <div class="login-box">
     <h1>bendy-message</h1>
-    <div class="header-actions">
-      <span style="font-size:12px;color:var(--text2)">{{ nodeRole }}</span>
-      <button class="btn" @click="toggleTheme">{{ theme === 'dark' ? '☀' : '☾' }}</button>
-    </div>
+    <p>统一消息中心管理面板</p>
+    <a href="/api/auth/github" class="login-btn">
+      <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+      Sign in with GitHub
+    </a>
   </div>
-  <div class="tabs">
-    <div class="tab" :class="{active:tab==='messages'}" @click="tab='messages'">消息</div>
-    <div class="tab" :class="{active:tab==='services'}" @click="tab='services';loadServices()">服务</div>
-    <div class="tab" :class="{active:tab==='nodes'}" @click="tab='nodes';loadNodes()">节点</div>
+</div>
+
+<!-- Main Layout -->
+<template v-if="authed">
+<div class="sidebar" :data-theme="theme">
+  <div class="sidebar-logo">bendy-message</div>
+  <div class="sidebar-menu">
+    <div class="sidebar-item" :class="{active:tab==='messages'}" @click="tab='messages';loadMessages()">消息管理</div>
+    <div class="sidebar-item" :class="{active:tab==='services'}" @click="tab='services';loadServices()">服务管理</div>
+    <div class="sidebar-item" :class="{active:tab==='nodes'}" @click="tab='nodes';loadNodes()">节点管理</div>
+    <div class="sidebar-item" :class="{active:tab==='keys'}" @click="tab='keys';loadKeys()">密钥管理</div>
+    <div class="sidebar-item" :class="{active:tab==='settings'}" @click="tab='settings';loadAdmins()">系统设置</div>
+  </div>
+  <div class="sidebar-footer">
+    <div class="admin-name">{{ currentUser }}</div>
+    <div style="margin-top:2px">管理员</div>
+    <a class="logout-link" @click="logout">退出登录</a>
+  </div>
+</div>
+<div class="main">
+  <div class="topbar">
+    <button class="btn btn-sm" @click="toggleTheme">{{ theme==='dark'?'☀':'☾' }}</button>
   </div>
   <div class="content">
-    <!-- 消息 -->
+
+    <!-- 消息管理 -->
     <div v-show="tab==='messages'">
+      <h3 style="margin-bottom:16px;font-size:16px">消息管理</h3>
+      <div class="form-row" style="margin-bottom:16px">
+        <button class="btn btn-primary" @click="showSendMsg=true">发送消息</button>
+      </div>
       <table v-if="messages.length">
         <tr><th>ID</th><th>平台</th><th>应用</th><th>用户</th><th>类型</th><th>时间</th><th></th></tr>
         <tr v-for="m in messages" :key="m.id">
-          <td style="font-family:monospace;font-size:11px">{{ m.id.slice(0,8) }}...</td>
+          <td class="key-val">{{ m.id.slice(0,8) }}...</td>
           <td>{{ m.platform }}</td><td>{{ m.app_package }}</td><td>{{ m.user_id }}</td>
           <td><span class="badge">{{ m.msg_type }}</span></td>
-          <td>{{ formatTime(m.created_at) }}</td>
-          <td><button class="btn" style="font-size:11px" @click="deleteMsg(m.id)">删除</button></td>
+          <td>{{ fmt(m.created_at) }}</td>
+          <td><button class="btn btn-sm" @click="deleteMsg(m.id)">删除</button></td>
         </tr>
       </table>
       <div v-else class="empty">暂无消息</div>
     </div>
-    <!-- 服务 -->
+
+    <!-- 服务管理 -->
     <div v-show="tab==='services'">
+      <h3 style="margin-bottom:16px;font-size:16px">服务管理</h3>
       <table v-if="services.length">
-        <tr><th>名称</th><th>Endpoint</th><th>应用</th><th>平台</th><th>状态</th><th>心跳</th></tr>
+        <tr><th>名称</th><th>Endpoint</th><th>应用</th><th>平台</th><th>状态</th><th>心跳</th><th></th></tr>
         <tr v-for="s in services" :key="s.id">
-          <td>{{ s.name }}</td><td style="font-size:11px">{{ s.endpoint }}</td><td>{{ s.app_package }}</td>
+          <td>{{ s.name }}</td><td class="key-val">{{ s.endpoint }}</td><td>{{ s.app_package }}</td>
           <td>{{ s.platforms.join(', ') }}</td>
           <td><span class="badge" :class="s.status==='online'?'badge-online':'badge-offline'">{{ s.status }}</span></td>
-          <td>{{ formatTime(s.last_heartbeat) }}</td>
+          <td>{{ fmt(s.last_heartbeat) }}</td>
+          <td><button class="btn btn-sm btn-danger" @click="unregisterSvc(s.id)">注销</button></td>
         </tr>
       </table>
       <div v-else class="empty">暂无注册服务</div>
     </div>
-    <!-- 节点 -->
+
+    <!-- 节点管理 -->
     <div v-show="tab==='nodes'">
+      <h3 style="margin-bottom:16px;font-size:16px">节点管理</h3>
       <table v-if="nodes.length">
         <tr><th>ID</th><th>角色</th><th>平台</th><th>区域</th><th>心跳</th></tr>
         <tr v-for="n in nodes" :key="n.id">
-          <td style="font-family:monospace;font-size:11px">{{ n.id.slice(0,8) }}...</td>
+          <td class="key-val">{{ n.id.slice(0,8) }}...</td>
           <td><span class="badge" :class="n.role==='master'?'badge-master':'badge-slave'">{{ n.role }}</span></td>
-          <td>{{ n.platform }}</td><td>{{ n.region }}</td><td>{{ formatTime(n.last_heartbeat) }}</td>
+          <td>{{ n.platform }}</td><td>{{ n.region }}</td><td>{{ fmt(n.last_heartbeat) }}</td>
         </tr>
       </table>
       <div v-else class="empty">暂无节点</div>
     </div>
+
+    <!-- 密钥管理 -->
+    <div v-show="tab==='keys'">
+      <h3 style="margin-bottom:16px;font-size:16px">密钥管理</h3>
+      <div class="form-row" style="margin-bottom:16px">
+        <input v-model="newKeyName" placeholder="密钥名称">
+        <button class="btn btn-primary" @click="createKey">创建密钥</button>
+      </div>
+      <table v-if="keys.length">
+        <tr><th>名称</th><th>密钥</th><th>创建时间</th><th></th></tr>
+        <tr v-for="k in keys" :key="k.id">
+          <td>{{ k.name }}</td>
+          <td><span class="key-val">{{ k.key }}</span></td>
+          <td>{{ fmt(k.created_at) }}</td>
+          <td><button class="btn btn-sm btn-danger" @click="deleteKey(k.id)">删除</button></td>
+        </tr>
+      </table>
+      <div v-else class="empty">暂无密钥，请创建一个用于服务注册认证</div>
+    </div>
+
+    <!-- 系统设置 -->
+    <div v-show="tab==='settings'">
+      <h3 style="margin-bottom:16px;font-size:16px">系统设置 — 管理员管理</h3>
+      <div class="form-row" style="margin-bottom:16px">
+        <input v-model="newAdminName" placeholder="GitHub 用户名">
+        <button class="btn btn-primary" @click="addAdmin">添加管理员</button>
+      </div>
+      <table v-if="admins.length">
+        <tr><th>用户名</th><th>来源</th><th></th></tr>
+        <tr v-for="a in admins" :key="a.username">
+          <td>{{ a.username }}</td>
+          <td><span class="badge">{{ a.source }}</span></td>
+          <td v-if="a.source==='dynamic'"><button class="btn btn-sm btn-danger" @click="removeAdmin(a.username)">移除</button></td>
+          <td v-else></td>
+        </tr>
+      </table>
+    </div>
+
   </div>
 </div>
+</template>
+
+<!-- Send Message Modal -->
+<div v-if="showSendMsg" class="modal-mask" @click.self="showSendMsg=false">
+  <div class="modal">
+    <h3>发送消息</h3>
+    <div class="form-row"><label>平台</label><input v-model="sendForm.platform" placeholder="ios/android/web"></div>
+    <div class="form-row"><label>应用</label><input v-model="sendForm.app_package" placeholder="com.example.app"></div>
+    <div class="form-row"><label>用户</label><input v-model="sendForm.user_id" placeholder="user_id"></div>
+    <div class="form-row"><label>类型</label><select v-model="sendForm.msg_type"><option value="notification">通知</option><option value="message">消息</option><option value="shell">命令</option></select></div>
+    <div class="form-row"><label>内容</label><input v-model="sendForm.content" placeholder='JSON 如 {"text":"hi"}'></div>
+    <div class="form-row"><label>存储</label><select v-model="sendForm.persist"><option :value="true">是</option><option :value="false">否</option></select></div>
+    <div class="modal-actions"><button class="btn" @click="showSendMsg=false">取消</button><button class="btn btn-primary" @click="sendMessage">发送</button></div>
+  </div>
+</div>
+
+</div>
+
 <script>
 function App() {
   return {
-    tab: 'messages',
-    theme: localStorage.getItem('bmsg-theme') || 'light',
-    messages: [],
-    services: [],
-    nodes: [],
-    nodeRole: '',
+    authed: false, currentUser: '', theme: localStorage.getItem('bmsg-theme') || 'dark',
+    tab: 'messages', messages: [], services: [], nodes: [], keys: [], admins: [],
+    showSendMsg: false, newKeyName: '', newAdminName: '',
+    sendForm: { platform:'ios', app_package:'', user_id:'', msg_type:'notification', content:'{"text":"hello"}', persist:true },
     init() {
       this.applyTheme()
-      this.loadMessages()
-      this.checkNodeStatus()
-      setInterval(() => { this.loadMessages(); this.checkNodeStatus() }, 10000)
+      this.checkAuth()
     },
-    toggleTheme() {
-      this.theme = this.theme === 'dark' ? 'light' : 'dark'
-      localStorage.setItem('bmsg-theme', this.theme)
-      this.applyTheme()
-    },
-    applyTheme() {
-      document.documentElement.setAttribute('data-theme', this.theme)
-    },
+    applyTheme() { document.documentElement.setAttribute('data-theme', this.theme) },
+    toggleTheme() { this.theme = this.theme==='dark'?'light':'dark'; localStorage.setItem('bmsg-theme', this.theme); this.applyTheme() },
     async api(path, opts) {
-      try { const r = await fetch('/api/v1/' + path, opts); return await r.json() } catch(e) { console.error(e); return null }
+      try { const r = await fetch(path.startsWith('/') ? path : '/api/v1/' + path, opts); return await r.json() } catch(e) { console.error(e); return null }
     },
-    async loadMessages() {
-      const r = await this.api('message/list')
-      if (r?.data) this.messages = r.data
+    async checkAuth() {
+      const r = await this.api('/api/auth/session')
+      if (r && r.code === 0) { this.authed = true; this.currentUser = r.username; this.loadMessages() }
+      else { this.authed = false }
     },
-    async loadServices() {
-      const r = await this.api('service/list')
-      if (r?.data) this.services = r.data
+    async logout() { await fetch('/api/auth/logout', {method:'POST'}); this.authed = false },
+    async loadMessages() { const r = await this.api('message/list'); if(r?.data) this.messages = r.data },
+    async loadServices() { const r = await this.api('service/list'); if(r?.data) this.services = r.data },
+    async loadNodes() { const r = await this.api('node/list'); if(r?.data) this.nodes = r.data },
+    async loadKeys() { const r = await this.api('admin/key/list'); if(r?.data) this.keys = r.data },
+    async loadAdmins() { const r = await this.api('admin/list'); if(r?.data) this.admins = r.data },
+    async deleteMsg(id) { await this.api('message/'+id, {method:'DELETE'}); this.loadMessages() },
+    async unregisterSvc(id) { if(!confirm('确认注销该服务?')) return; await this.api('service/unregister',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})}); this.loadServices() },
+    async createKey() {
+      if(!this.newKeyName) return;
+      await this.api('admin/key/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:this.newKeyName})});
+      this.newKeyName=''; this.loadKeys()
     },
-    async loadNodes() {
-      const r = await this.api('node/list')
-      if (r?.data) this.nodes = r.data
+    async deleteKey(id) {
+      if(!confirm('删除密钥将同步注销使用该密钥注册的所有服务，确认删除?')) return;
+      await this.api('admin/key/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});
+      this.loadKeys(); this.loadServices()
     },
-    async checkNodeStatus() {
-      const r = await this.api('node/status')
-      if (r?.data) this.nodeRole = r.data.is_master ? 'Master' : 'Slave'
+    async addAdmin() {
+      if(!this.newAdminName) return;
+      await this.api('admin/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:this.newAdminName})});
+      this.newAdminName=''; this.loadAdmins()
     },
-    async deleteMsg(id) {
-      await this.api('message/' + id, { method: 'DELETE' })
-      this.loadMessages()
+    async removeAdmin(username) {
+      if(!confirm('确认移除管理员 '+username+'?')) return;
+      await this.api('admin/remove',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username})});
+      this.loadAdmins()
     },
-    formatTime(ts) {
-      if (!ts) return '-'
-      return new Date(ts * 1000).toLocaleString('zh-CN', { hour12: false })
-    }
+    async sendMessage() {
+      let content;
+      try { content = JSON.parse(this.sendForm.content) } catch(e) { content = {text:this.sendForm.content} }
+      await this.api('message/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+        target:{platform:this.sendForm.platform,app_package:this.sendForm.app_package,user_id:this.sendForm.user_id,msg_type:this.sendForm.msg_type},
+        content, persist:this.sendForm.persist
+      })});
+      this.showSendMsg=false; this.loadMessages()
+    },
+    fmt(ts) { if(!ts) return '-'; return new Date(ts*1000).toLocaleString('zh-CN',{hour12:false}) }
   }
 }
 PetiteVue.createApp().mount()

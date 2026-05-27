@@ -139,7 +139,7 @@ struct StatusRow {
     status: String,
 }
 
-fn simple_hash(input: &str) -> String {
+pub fn simple_hash(input: &str) -> String {
     use std::hash::{Hash, Hasher};
     let mut hasher = std::collections::hash_map::DefaultHasher::new();
     input.hash(&mut hasher);

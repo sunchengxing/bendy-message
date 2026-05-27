@@ -2,6 +2,7 @@ mod storage;
 pub mod election;
 mod registry;
 mod admin;
+mod auth;
 
 pub use election::LeaderElectionDO;
 
@@ -58,6 +59,62 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
         })
         .post_async("/api/v1/node/heartbeat", |_, ctx| async move {
             handle_node_heartbeat(ctx).await
+        })
+        // 认证接口
+        .get_async("/api/auth/github", |_, ctx| async move {
+            auth::github_redirect(&ctx.env)
+        })
+        .get_async("/api/auth/github/callback", |req, ctx| async move {
+            auth::github_callback(req, &ctx.env).await
+        })
+        .get_async("/api/auth/session", |req, ctx| async move {
+            auth::session_info(req.headers(), &ctx.env).await
+        })
+        .post_async("/api/auth/logout", |req, ctx| async move {
+            auth::logout(req.headers(), &ctx.env).await
+        })
+        // 管理接口（需管理员认证）
+        .get_async("/api/v1/admin/list", |req, ctx| async move {
+            let kv = ctx.env.kv("bmsg-cache").map_err(|e| Error::RustError(e.to_string()))?;
+            if auth::check_auth(req.headers(), &kv).await.is_none() {
+                return Err(Error::RustError("unauthorized".into()));
+            }
+            auth::list_admins(&ctx.env).await
+        })
+        .post_async("/api/v1/admin/add", |req, ctx| async move {
+            let kv = ctx.env.kv("bmsg-cache").map_err(|e| Error::RustError(e.to_string()))?;
+            if auth::check_auth(req.headers(), &kv).await.is_none() {
+                return Err(Error::RustError("unauthorized".into()));
+            }
+            auth::add_admin(req, &ctx.env).await
+        })
+        .post_async("/api/v1/admin/remove", |req, ctx| async move {
+            let kv = ctx.env.kv("bmsg-cache").map_err(|e| Error::RustError(e.to_string()))?;
+            if auth::check_auth(req.headers(), &kv).await.is_none() {
+                return Err(Error::RustError("unauthorized".into()));
+            }
+            auth::remove_admin(req, &ctx.env).await
+        })
+        .get_async("/api/v1/admin/key/list", |req, ctx| async move {
+            let kv = ctx.env.kv("bmsg-cache").map_err(|e| Error::RustError(e.to_string()))?;
+            if auth::check_auth(req.headers(), &kv).await.is_none() {
+                return Err(Error::RustError("unauthorized".into()));
+            }
+            auth::list_keys(&ctx.env).await
+        })
+        .post_async("/api/v1/admin/key/create", |req, ctx| async move {
+            let kv = ctx.env.kv("bmsg-cache").map_err(|e| Error::RustError(e.to_string()))?;
+            if auth::check_auth(req.headers(), &kv).await.is_none() {
+                return Err(Error::RustError("unauthorized".into()));
+            }
+            auth::create_key(req, &ctx.env).await
+        })
+        .post_async("/api/v1/admin/key/delete", |req, ctx| async move {
+            let kv = ctx.env.kv("bmsg-cache").map_err(|e| Error::RustError(e.to_string()))?;
+            if auth::check_auth(req.headers(), &kv).await.is_none() {
+                return Err(Error::RustError("unauthorized".into()));
+            }
+            auth::delete_key(req, &ctx.env).await
         })
         // 管理面板
         .get_async("/admin", |_, ctx| async move {
@@ -159,6 +216,13 @@ async fn handle_delete_message(ctx: RouteContext<()>) -> Result<Response> {
 
 async fn handle_register_service(mut req: Request, ctx: RouteContext<()>) -> Result<Response> {
     let body: bmsg_core::RegisterRequest = req.json().await?;
+
+    // Validate API key
+    let kv = ctx.env.kv("bmsg-cache").map_err(|e| Error::RustError(e.to_string()))?;
+    if !auth::validate_api_key(&body.secret, &kv).await {
+        return Response::from_json(&ApiResponse::<()>::error(1002, "invalid API key".into()));
+    }
+
     let db = ctx.env.d1("bmsg-db")?;
     let reg = registry::KvRegistry::new(db);
     match reg.register(&body).await {

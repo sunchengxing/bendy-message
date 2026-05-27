@@ -32,4 +32,5 @@ tag = "v1"
 new_sqlite_classes = ["LeaderElectionDO"]
 
 [vars]
-REGISTRATION_SECRET = "change-me-in-production"
+GITHUB_CLIENT_ID = "Ov23liSXjHPznAoeFeNv"
+GITHUB_CLIENT_SECRET = "6f12408bf7cd9efd4f5b5c07cb609855e1aacc60"
