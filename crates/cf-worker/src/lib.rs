@@ -1,7 +1,9 @@
 mod storage;
-mod election;
+pub mod election;
 mod registry;
 mod admin;
+
+pub use election::LeaderElectionDO;
 
 use bmsg_core::{SendMessageRequest, BatchSendMessageRequest, ApiResponse, BmsgError, MessageStorage, ServiceRegistry, Election, match_services, build_delivery_payload};
 use worker::*;

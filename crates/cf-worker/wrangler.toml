@@ -1,10 +1,11 @@
 name = "bendy-message"
-main = "crates/cf-worker/src/lib.rs"
+main = "build/index.js"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
 
 [build]
 command = "cargo install worker-build && worker-build --release"
+watch_dir = "src"
 
 [triggers]
 crons = ["*/5 * * * *"]
@@ -12,20 +13,23 @@ crons = ["*/5 * * * *"]
 [[d1_databases]]
 binding = "bmsg-db"
 database_name = "bendy-message-db"
-database_id = "placeholder-change-me"
+database_id = "c53e5295-2ed4-47f5-ae2d-cc43584e19a7"
 
 [[kv_namespaces]]
 binding = "bmsg-cache"
-id = "placeholder-change-me"
+id = "e942cc3d4d5e4df483a6cd52f1e5803d"
 
 [[kv_namespaces]]
 binding = "bmsg-services"
-id = "placeholder-change-me"
+id = "4f6c6abb6694429fb6273e962ef2ffce"
 
 [[durable_objects.bindings]]
 name = "bmsg-election"
 class_name = "LeaderElectionDO"
-script_name = "bendy-message"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["LeaderElectionDO"]
 
 [vars]
 REGISTRATION_SECRET = "change-me-in-production"
